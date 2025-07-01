@@ -1,7 +1,5 @@
 import numpy as np
 
-import numpy as np
-
 def J_UD(w, alpha, Gamma, w0):
     """
     Compute the underdamped spectral density J(w) of a bosonic environment.
