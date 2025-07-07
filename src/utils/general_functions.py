@@ -2,44 +2,47 @@ import numpy as np
 
 def symmetrize_function(x, f):
     """
-    Extend function values f(x) and corresponding x values symmetrically about x=0
-    so that f(-x) = f(x) (even symmetry, no complex conjugation).
-
-    Used so that we only need to calculate half of the work/photon characteristic functions.
+    Extend domain to negative values, then symmetrize the function such that f(-x)^* = f(x).
 
     Parameters
     ----------
     x : array-like
-        1D array of x values, assumed to be >= 0 and evenly spaced starting at 0.
+        1D array of x real values, assumed to be >= 0 and evenly spaced starting at 0.
     f : array-like
-        1D array of f(x) values corresponding to the input x.
+        1D array of f(x) complex values corresponding to the input x.
 
     Returns
     -------
     x_full : ndarray
-        Array of x values extended to negative domain in symmetric fashion.
+        Array of x real values extended to negative domain in symmetric fashion.
     f_full : ndarray
-        Array of function values f(x) extended such that f(-x) = f(x).
+        Array of function complex values f(x) extended such that f(-x)^* = f(x).
 
     Raises
     ------
     ValueError
         If x and f have different lengths or are not 1D.
     """
-    x = np.asarray(x)
-    f = np.asarray(f)
 
+    # Convert inputs to numpy arrays
+    x = np.asarray(x) # chi values
+    f = np.asarray(f) # characterstic function values
+
+    # Validate inputs
     if x.ndim != 1 or f.ndim != 1:
         raise ValueError("Both x and f must be 1D arrays.")
     if len(x) != len(f):
         raise ValueError("x and f must have the same length.")
     if x[0] != 0:
         raise ValueError("x must start at 0 for symmetric extension.")
+    if not np.all(np.isreal(x)):
+        raise ValueError("x must contain only real values.")
 
-    x_neg = -x[1:][::-1]   # negative part, excluding x=0
-    f_neg = f[1:][::-1]    # mirror values (no conjugate)
+    # conversion to full domain
+    x_neg = -x[1:][::-1]   # mirror values (excluding 0), without complex conjugation
+    f_neg = np.conj(f[1:][::-1])    # mirror values (exclusing f(0)) with complex conjugation
 
-    x_full = np.concatenate([x_neg, x])
-    f_full = np.concatenate([f_neg, f])
+    x_full = np.concatenate([x_neg, x]) # concatenate
+    f_full = np.concatenate([f_neg, f]) # concatenate
 
     return x_full, f_full
