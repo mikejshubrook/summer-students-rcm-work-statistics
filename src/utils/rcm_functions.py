@@ -1,4 +1,5 @@
 import numpy as np
+import qutip as qt
 
 def J_UD(w, alpha, Gamma, w0):
     """
@@ -96,7 +97,7 @@ def perform_reaction_coordinate_mapping(alpha, Gamma, w0):
 
 
 
-def N_ph(w, beta_ph):
+def N_residual_bath(w, beta_ph):
     """
     Bose-Einstein thermal occupation number at frequency w and inverse temperature beta_ph.
 
@@ -136,7 +137,7 @@ def N_ph(w, beta_ph):
 
     return result
 
-def J_ph(w, gam):
+def J_residual_bath(w, gam):
     """
     Ohmic spectral density without cutoff: J(w) = gamma * w
 
@@ -170,3 +171,67 @@ def J_ph(w, gam):
         raise ValueError("w must be real and non-negative.")
 
     return gam * w
+
+
+
+def Lio_residual_bath(vals, vecs, H_ES, A, gamma, beta_ph):
+    """ Calculate the Liouville superoperator for the reaction coordinate master equation """
+
+
+    # initialize rate operators
+    R1 = 0
+    R2 = 0
+
+    # loop over all combinations of eigenvalues/eigenvectors
+    for m in range(len(vals)):
+        for n in range(len(vals)):
+            
+            # calculate difference in eigenvalues
+            lambda_mn = vals[m] - vals[n]
+
+            # calculate the outer product of eigenvectors
+            proj_mn = vecs[m] * vecs[n].dag()
+
+            # calculate matrix element of coupling operator A
+            A_mn = vecs[m].dag() * A * vecs[n]
+
+            # add to the rate operators depending on the value of lambda_mn
+
+            if lambda_mn > 0:
+                # call functions to calculate J and N
+                J = J_residual_bath(lambda_mn, gamma)
+                N = N_residual_bath(lambda_mn, beta_ph)
+
+                R1 += np.pi * A_mn * J + N * proj_mn
+                R2 += np.pi * A_mn * J * (1 + N) * proj_mn
+
+            elif lambda_mn < 0:
+                # call functions to calculate J and N (with negative lambda_mn)
+                # Note: J and N are not defined for negative frequencies so we convert negative lambda_mn to positive
+                J = J_residual_bath(-lambda_mn, gamma)
+                N = N_residual_bath(-lambda_mn, beta_ph)
+
+                R1 += np.pi * A_mn * J * (1 + N) * proj_mn
+                R2 += np.pi * A_mn * J * N *  proj_mn
+
+            elif lambda_mn == 0:
+                # TODO possible a factor of 1/2 missing from here
+                val = np.pi * A_mn * (gamma / beta_ph) * proj_mn
+                R1 += val
+                R2 += val
+
+            else:
+                raise ValueError(f"Unexpected value for lambda_mn: {lambda_mn}")
+            
+    ### calculate the Liouville superoperator
+    
+    # coherent term
+    L_coherent = -1j*(qt.spre(H_ES) - qt.spost(H_ES))
+    
+    # dissipative term
+    L_dissipative = qt.spre(A*R1) - qt.sprepost(R1, A) - qt.sprepost(A, R2) + qt.spost(R2*A)
+
+    # total Liouville superoperator
+    L_total = L_coherent - L_dissipative
+
+    return L_total
