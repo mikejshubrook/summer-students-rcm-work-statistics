@@ -7,7 +7,7 @@ from math import isclose
 # Add the src folder to sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
-from utils.rcm_functions import J_UD, perform_reaction_coordinate_mapping, N_ph, J_ph
+from utils.rcm_functions import J_UD, perform_reaction_coordinate_mapping, N_residual_bath, J_residual_bath
 
 def test_J_UD():
     # Valid input
@@ -37,42 +37,42 @@ def test_perform_reaction_coordinate_mapping():
     except ValueError:
         pass
 
-def test_N_ph():
+def test_N_residual_bath():
     # Scalar
-    assert N_ph(1.0, 2.0) > 0
+    assert N_residual_bath(1.0, 2.0) > 0
 
     # Vector input
-    n = N_ph([0.0, 0.5, 1.0], 1.0)
+    n = N_residual_bath([0.0, 0.5, 1.0], 1.0)
     assert np.all(n >= 0)
     assert np.isclose(n[0], 0.0)
 
     # Error handling
     try:
-        N_ph(-1.0, 1.0)
+        N_residual_bath(-1.0, 1.0)
         raise AssertionError("Expected ValueError for negative w")
     except ValueError:
         pass
 
     try:
-        N_ph(1.0, -2.0)
+        N_residual_bath(1.0, -2.0)
         raise AssertionError("Expected ValueError for negative beta_ph")
     except ValueError:
         pass
 
-def test_J_ph():
-    assert np.isclose(J_ph(1.0, 0.5), 0.5)
+def test_J_residual_bath():
+    assert np.isclose(J_residual_bath(1.0, 0.5), 0.5)
 
-    J = J_ph([0.0, 1.0, 2.0], 2.0)
+    J = J_residual_bath([0.0, 1.0, 2.0], 2.0)
     assert np.allclose(J, [0.0, 2.0, 4.0])
 
     try:
-        J_ph(-1.0, 1.0)
+        J_residual_bath(-1.0, 1.0)
         raise AssertionError("Expected ValueError for negative frequency")
     except ValueError:
         pass
 
     try:
-        J_ph(1.0, -0.1)
+        J_residual_bath(1.0, -0.1)
         raise AssertionError("Expected ValueError for negative gam")
     except ValueError:
         pass
@@ -83,8 +83,8 @@ if __name__ == "__main__":
     try:
         test_J_UD()
         test_perform_reaction_coordinate_mapping()
-        test_N_ph()
-        test_J_ph()
+        test_N_residual_bath()
+        test_J_residual_bath()
         print("✅ All tests passed successfully.")
     except AssertionError as e:
         print("❌ Test failed:", e)

@@ -175,14 +175,35 @@ def J_residual_bath(w, gam):
 
 
 def Lio_residual_bath(vals, vecs, H_ES, A, gamma, beta_ph):
-    """ Calculate the Liouville superoperator for the reaction coordinate master equation """
-
+    """ Calculate the Liouville superoperator for the reaction coordinate master equation 
+    
+    Parameters
+    ----------
+    vals : list or array-like
+        Eigenvalues of the system Hamiltonian.
+    vecs : list or array-like
+        Eigenvectors of the system Hamiltonian.
+    H_ES : qutip.Qobj
+        System Hamiltonian.
+    A : qutip.Qobj
+        Coupling operator between the system and the residual bath.
+    gamma : float
+        Coupling strength between the reaction coordinate and the residual bath.
+    beta_ph : float
+        Inverse temperature of the residual bath (1/kT).
+        
+    Returns
+    -------
+    L_total : qutip.Qobj
+        The total Liouville superoperator for the reaction coordinate master equation.
+    """
+    # TODO validate inputs and raise ValueError if not correct
 
     # initialize rate operators
     R1 = 0
     R2 = 0
 
-    # loop over all combinations of eigenvalues/eigenvectors
+    #----- loop over all combinations of eigenvalues/eigenvectors -----#
     for m in range(len(vals)):
         for n in range(len(vals)):
             
@@ -195,7 +216,7 @@ def Lio_residual_bath(vals, vecs, H_ES, A, gamma, beta_ph):
             # calculate matrix element of coupling operator A
             A_mn = vecs[m].dag() * A * vecs[n]
 
-            # add to the rate operators depending on the value of lambda_mn
+            #----- add to the rate operators depending on the value of lambda_mn -----#
 
             if lambda_mn > 0:
                 # call functions to calculate J and N
@@ -223,7 +244,7 @@ def Lio_residual_bath(vals, vecs, H_ES, A, gamma, beta_ph):
             else:
                 raise ValueError(f"Unexpected value for lambda_mn: {lambda_mn}")
             
-    ### calculate the Liouville superoperator
+    #----- calculate the Liouville superoperator -----# 
     
     # coherent term
     L_coherent = -1j*(qt.spre(H_ES) - qt.spost(H_ES))
