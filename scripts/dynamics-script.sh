@@ -10,20 +10,21 @@ export DT=0.1 # time step
 
 
 ### Bath parameters ###
+export UNITS="eV" # units for energy
 export TEMPERATURE=300 # temperature [K]
-export GAMMA=10.0 # spectral density width
-export W0=220.0 # spectral density peak location
-export ALPHA=0.02 # coupling strength
+export GAMMA=0.001 # spectral density width
+export W0=0.05 # spectral density peak location
+export ALPHA=0.1 # coupling strength
 
 
 ### TLS parameters ###
-export EPSILON=1000 # energy splitting of the TLS
-export DELTA=20 # driving amplitude
+export EPSILON=2 # energy splitting of the TLS
+export DELTA=0.1 # driving amplitude
 export OMEGA=0 # driving frequency
-export CONV=0.188 # conversion factor
+export CONV=1519.3 # conversion factor
 
 ### RC parameters
-export M=2 # dimension of RC Hilbert space
+export M=10 # dimension of RC Hilbert space
 
 # Run py files
 python ../src/workflow/dynamics.py

@@ -1,8 +1,6 @@
 # Standard library imports
 import os
 import sys
-import pickle
-import dill as pickle
 
 # Third-party imports
 import numpy as np
@@ -17,21 +15,17 @@ sys.path.append(src_dir)
 # Local imports
 from utils.rcm_functions import *
 
-print("Importing complete")
-
 # Path handling for reliable file saving/loading
 CURRENT_FILE = os.path.abspath(__file__)
 PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_FILE, "../../../"))  # Adjust based on your layout
 DATA_DIR = os.path.join(PROJECT_ROOT, "data", "dynamics-files")
 
-print(f"Project root directory: {PROJECT_ROOT}")
-print(f"Data directory: {DATA_DIR}")
-
-
 #----- Import parameters from BASH -----#
 T0  = float(os.environ['T0'])           
 T1 = float(os.environ['T1'])
 DT = float(os.environ['DT'])
+
+UNITS = os.environ['UNITS']  # Units for energy
 
 TEMPERATURE = float(os.environ['TEMPERATURE'])  # Temperature
 GAMMA = float(os.environ['GAMMA'])  # Spectral density width
@@ -44,8 +38,6 @@ OMEGA = float(os.environ['OMEGA'])  # Driving frequency of TLS
 CONV = float(os.environ['CONV'])  # Conversion factor
 
 M = int(os.environ['M'])  # Dimension of RC Hilbert space
-
-print('imported parameters')
 
 #----- Convert parameters (if needed) -----#
 delta = DELTA * CONV  # Convert driving amplitude to eV
@@ -109,8 +101,8 @@ exp_ops = [qt.tensor(ee, qt.qeye(M)), # excited state population
 
 #----- Run the master equation -----#
 result = qt.mesolve(L_total, rho_0, tlist, e_ops=exp_ops,
-                    options=qt.Options(nsteps = 10000000000000000, 
-                                        atol = 1e-11, rtol = 1e-11), 
+                    options=qt.Options(nsteps = 100000000, 
+                                        atol = 1e-7, rtol = 1e-7), 
                                         progress_bar=True)
 #----- Extract expectation values -----#
 excited_pop =  np.array(result.expect[0]).real
@@ -131,7 +123,7 @@ results = {
 df = pd.DataFrame(results)
 
 # Save DataFrame to a CSV file
-output_path = os.path.join(DATA_DIR, f"dynamics_A{ALPHA}_E{EPSILON}_D{DELTA}_O{OMEGA}_T{TEMPERATURE}_G{GAMMA}_W0_{W0}_T0{T0}_T1{T1}_dT{DT}_M{M}.csv")
+output_path = os.path.join(DATA_DIR, f"dynamics_{UNITS}_A{ALPHA}_E{EPSILON}_D{DELTA}_O{OMEGA}_T{TEMPERATURE}_G{GAMMA}_w0{W0}_t0{T0}_tf{T1}_dt{DT}_M{M}.csv")
 
 # Ensure the output directory exists
 os.makedirs(os.path.dirname(output_path), exist_ok=True)
